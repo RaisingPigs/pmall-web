@@ -1,0 +1,592 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>搜索页面</title>
+
+    <link href="static/css/amazeui.css" rel="stylesheet" type="text/css"/>
+    <link href="static/css/admin.css" rel="stylesheet" type="text/css"/>
+
+    <link href="static/css/demo.css" rel="stylesheet" type="text/css"/>
+
+    <link href="static/css/seastyle.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="./static/elementui/index.css">
+
+    <!--    <script type="text/javascript" src="static/js/jquery-1.7.min.js"></script>-->
+    <!--    <script type="text/javascript" src="static/js/script.js"></script>-->
+</head>
+
+<body>
+<div id="app">
+    <!--顶部导航条 -->
+    <div class="am-container header">
+        <ul class="message-l">
+            <div class="topMessage">
+                <div v-if="isLogin" class="menu-hd">
+                    <span class="h">欢迎, {{userInfo.nickname}}</span>
+                    &nbsp;&nbsp;
+                    <a @click.prevent="logout" href="#" target="_top">退出登录</a>
+                </div>
+                <div v-else class="menu-hd">
+                    <a href="login.html" target="_top" class="h">亲，请登录</a>
+                    &nbsp;&nbsp;
+                    <a href="register.html" target="_top">免费注册</a>
+                </div>
+            </div>
+        </ul>
+        <ul class="message-r">
+            <div class="topMessage home">
+                <div class="menu-hd"><a href="index.html" target="_top" class="h">商城首页</a></div>
+            </div>
+            <div class="topMessage my-shangcheng">
+                <div class="menu-hd MyShangcheng"><a href="user-center.html" target="_top"><i class="am-icon-user am-icon-fw"></i>个人中心</a>
+                </div>
+            </div>
+            <div class="topMessage mini-cart">
+                <div class="menu-hd"><a id="mc-menu-hd" href="shopcart.html" target="_top"><i
+                        class="am-icon-shopping-cart  am-icon-fw"></i><span>购物车</span>
+<!--                    <strong id="J_MiniCartNum" class="h">0</strong>-->
+                </a>
+                </div>
+            </div>
+            <div class="topMessage favorite">
+                <div class="menu-hd"><a href="#" target="_top">
+                    <!--<i class="am-icon-heart am-icon-fw"></i><span>收藏夹</span>-->
+                </a>
+                </div>
+            </div>
+        </ul>
+    </div>
+
+    <!--悬浮搜索框-->
+    <div class="nav white">
+        <div class="logo"><img src="static/images/logo.png"/></div>
+        <div class="logoBig">
+            <li><img src="static/images/logo.png"/></li>
+        </div>
+
+        <div class="search-bar pr">
+            <a name="index_none_header_sysc" href="#"></a>
+            <form>
+                <input @keyup.enter.prevent="handleSearch()"
+                       v-model="queryInfo.query"
+                       id="searchInput"
+                       name="index_none_header_sysc"
+                       type="text"
+                       placeholder="搜索"
+                       autocomplete="off">
+                <input @click.prevent="handleSearch()"
+                       id="ai-topsearch"
+                       class="submit am-btn"
+                       value="搜索"
+                       index="1"
+                       type="submit">
+
+            </form>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <b class="line"></b>
+
+    <div class="search">
+        <div class="search-list">
+            <div class="nav-table">
+                <div class="long-title"><span class="all-goods">全部分类</span></div>
+                <div class="nav-cont">
+                    <ul>
+                        <li class="index"><a href="index.html">首页</a></li>
+                        <li class="qc"><a style="pointer-events: none;" href="#">闪购</a></li>
+                        <li class="qc"><a style="pointer-events: none;" href="#">限时抢</a></li>
+                        <li class="qc"><a style="pointer-events: none;" href="#">团购</a></li>
+                        <li class="qc last"><a style="pointer-events: none;" href="#">大包装</a></li>
+                    </ul>
+                   <!-- <div class="nav-extra">
+                        <i class="am-icon-user-secret am-icon-md nav-user"></i><b></b>我的福利
+                        <i class="am-icon-angle-right" style="padding-left: 10px;"></i>
+                    </div>-->
+                </div>
+            </div>
+
+
+            <div v-if="products.length > 0" class="am-g am-g-fixed">
+                <div class="am-u-sm-12 am-u-md-12">
+                    <div class="theme-popover">
+                        <!--相关搜索-->
+                        <!--<div class="searchAbout">
+                            <span class="font-pale">相关搜索：</span>
+                            <a title="坚果" href="#">坚果</a>
+                            <a title="瓜子" href="#">瓜子</a>
+                            <a title="鸡腿" href="#">豆干</a>
+                        </div>-->
+
+                        <!--品牌种类选择-->
+                        <ul class="select" style="margin-top: 10px;">
+                            <li class="select-result" style="border-top:none; border-bottom: 1px solid #ddd;">
+                                <dl>
+                                    <dt>已选</dt>
+                                    <dd class="select-no"></dd>
+                                    <p @click="searchWithoutBrand"
+                                       class="eliminateCriteria">清除</p>
+                                </dl>
+                            </li>
+                            <div class="clear"></div>
+                            <li class="select-list" style="border:none">
+                                <dl id="select1">
+                                    <dt class="am-badge am-round">品牌</dt>
+
+                                    <div class="dd-conent">
+                                        <dd @click="searchWithoutBrand"
+                                            class="select-all selected">
+                                            <a href="#">全部</a>
+                                        </dd>
+                                        <dd @click="searchWithBrand(brand)"
+                                            v-for="(brand, index) in brands"
+                                            :key="index">
+                                            <a href="#">{{brand}}</a>
+                                        </dd>
+                                    </div>
+
+                                </dl>
+                            </li>
+                            <!--<li class="select-list">
+                                <dl id="select2">
+                                    <dt class="am-badge am-round">种类</dt>
+                                    <div class="dd-conent">
+                                        <dd class="select-all selected"><a href="#">全部</a></dd>
+                                        <dd><a href="#">东北松子</a></dd>
+                                        <dd><a href="#">巴西松子</a></dd>
+                                        <dd><a href="#">夏威夷果</a></dd>
+                                        <dd><a href="#">松子</a></dd>
+                                    </div>
+                                </dl>
+                            </li>
+                            <li class="select-list">
+                                <dl id="select3">
+                                    <dt class="am-badge am-round">选购热点</dt>
+                                    <div class="dd-conent">
+                                        <dd class="select-all selected"><a href="#">全部</a></dd>
+                                        <dd><a href="#">手剥松子</a></dd>
+                                        <dd><a href="#">薄壳松子</a></dd>
+                                        <dd><a href="#">进口零食</a></dd>
+                                        <dd><a href="#">有机零食</a></dd>
+                                    </div>
+                                </dl>
+                            </li>-->
+
+                        </ul>
+                        <div class="clear"></div>
+                    </div>
+
+                    <!--商品信息-->
+                    <div class="search-content">
+                        <div class="sort">
+                            <li @click="comprehensiveSort"
+                                style="cursor: pointer"
+                                :class="sortType.flag[0].className">
+                                <a title="综合">综合排序</a>
+                            </li>
+                            <li @click="sortBySoldNum"
+                                :class="sortType.flag[1].className"
+                                style="cursor: pointer">
+                                <a title="销量">销量排序<i :class="sortType.flag[1].icon"></i></a>
+                            </li>
+                            <li @click="sortByPrice"
+                                :class="sortType.flag[2].className"
+                                style="cursor: pointer">
+                                <a title="价格">价格优先<i :class="sortType.flag[2].icon"></i></a>
+                            </li>
+                        </div>
+                        <div class="clear"></div>
+
+                        <ul class="am-avg-sm-2 am-avg-md-3 am-avg-lg-4 boxes">
+                            <li v-for="product in products"
+                                :key="product.productId"
+                                @click="toIntroductionPage(product.productId)">
+                                <div class="i-pic limit">
+                                    <img :src="`static/images/${product.productImgs[0].url}`"/>
+                                    <p class="title fl">【{{product.productParams.brand}}】{{product.productName}}
+                                        {{product.productSkus[0].skuName}}</p>
+                                    <p class="price fl">
+                                        <b>¥</b>
+                                        <strong>{{product.productSkus[0].sellPrice}}</strong>
+                                    </p>
+                                    <p class="number fl">
+                                        销量<span>{{product.soldNum}}</span>
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!--经典搭配-->
+                    <div class="search-side">
+
+                        <div class="side-title">
+                            经典搭配
+                        </div>
+
+                        <li>
+                            <div class="i-pic check">
+                                <img src="static/images/cp.jpg"/>
+                                <p class="check-title">萨拉米 1+1小鸡腿</p>
+                                <p class="price fl">
+                                    <b>¥</b>
+                                    <strong>29.90</strong>
+                                </p>
+                                <p class="number fl">
+                                    销量<span>1110</span>
+                                </p>
+                            </div>
+                        </li>
+                        <!-- <li>
+                             <div class="i-pic check">
+                                 <img src="static/images/cp2.jpg"/>
+                                 <p class="check-title">ZEK 原味海苔</p>
+                                 <p class="price fl">
+                                     <b>¥</b>
+                                     <strong>8.90</strong>
+                                 </p>
+                                 <p class="number fl">
+                                     销量<span>1110</span>
+                                 </p>
+                             </div>
+                         </li>
+                         <li>
+                             <div class="i-pic check">
+                                 <img src="static/images/cp.jpg"/>
+                                 <p class="check-title">萨拉米 1+1小鸡腿</p>
+                                 <p class="price fl">
+                                     <b>¥</b>
+                                     <strong>29.90</strong>
+                                 </p>
+                                 <p class="number fl">
+                                     销量<span>1110</span>
+                                 </p>
+                             </div>
+                         </li>-->
+
+                    </div>
+                    <div class="clear"></div>
+
+                    <!--分页 -->
+                    <!-- <ul class="am-pagination am-pagination-right">
+                         <li class="am-disabled"><a href="#">&laquo;</a></li>
+                         <li class="am-active"><a href="#">1</a></li>
+                         <li><a href="#">2</a></li>
+                         <li><a href="#">3</a></li>
+                         <li><a href="#">4</a></li>
+                         <li><a href="#">5</a></li>
+                         <li><a href="#">&raquo;</a></li>
+                     </ul>-->
+
+                </div>
+                <div class="clear"></div>
+
+                <el-row style="margin: 20px 0">
+                    <el-col align="center">
+                        <!--分页-->
+                        <el-pagination
+                                background
+                                layout="prev, pager, next"
+                                @current-change="handlePagenumChange"
+                                :current-page="queryInfo.pagenum"
+                                :page-size="queryInfo.pagesize"
+                                :total="total">
+                        </el-pagination>
+                    </el-col>
+                </el-row>
+            </div>
+
+            <el-row v-else style="margin: 200px 0">
+                <el-col align="center">
+                    <span style="font-size: 24px; font-weight: bold;">
+                        暂时还没有商品 
+                        <a href="index.html"
+                           style="font-size: 24px; font-weight: bold; text-decoration:underline; color: mediumblue;">回首页</a>
+                    </span>
+                </el-col>
+            </el-row>
+
+            <div class="footer">
+                <div class="footer-hd ">
+                    <p>
+                        <a style="pointer-events: none;" href="#">潘氏商城</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">商城首页</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">个人中心</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">物流</a>
+                    </p>
+                </div>
+                <div class="footer-bd ">
+                    <p>
+                        <a style="pointer-events: none;" href="#">关于商城</a>
+                        <a style="pointer-events: none;" href="#">合作伙伴</a>
+                        <a style="pointer-events: none;" href="#">联系我们</a>
+                        <a style="pointer-events: none;" href="#">网站地图</a>
+                        <em>©pandemo.top 版权所有</em>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!--引导 -->
+    <div class="navCir">
+        <li><a href="index.html"><i class="am-icon-home "></i>首页</a></li>
+        <li><a href="#"><i class="am-icon-list"></i>分类</a></li>
+        <li><a href="shopcart.html"><i class="am-icon-shopping-basket"></i>购物车</a></li>
+        <li><a href="#"><i class="am-icon-user"></i>我的</a></li>
+    </div>
+
+    <div class="theme-popover-mask"></div>
+</div>
+
+
+<script type="text/javascript" src="./static/js/vue.js"></script>
+<script type="text/javascript" src="./static/js/axios.min.js"></script>
+<script type="text/javascript" src="./static/elementui/index.js"></script>
+<script type="text/javascript" src="./static/utils/handleError.js"></script>
+<script type="text/javascript" src="./static/utils/utils.js"></script>
+<script type="text/javascript" src="./static/js/dayjs.min.js"></script>
+<script type="text/javascript" src="./static/utils/base.js"></script>
+
+<script type="text/javascript">
+    axios.defaults.baseURL = baseUrl;
+    axios.interceptors.request.use(
+        config => {
+            config.headers.Authorization = localStorage.getItem('token');
+
+            return config;
+        }
+    );
+
+
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                userInfo: {
+                    nickname: localStorage.getItem('nickname'),
+                    userImg: localStorage.getItem('userImg')
+                },
+                isLogin: localStorage.getItem('token') !== null,
+                products: [],
+                brands: [],
+                currentBrand: '',
+                categoryId: getUrlParam(window.location.href).categoryId,
+                queryInfo: {
+                    pagenum: 1,
+                    pagesize: 4,
+                    query: getUrlParam(window.location.href).query
+                },
+                total: 0,
+                sortType: {
+                    orderByCol: '',
+                    seq: '',
+                    flag: [
+                        {
+                            className: 'first'
+                        },
+                        {
+                            sequence: true,
+                            icon: 'el-icon-d-caret',
+                            className: ''
+                        },
+                        {
+                            sequence: true,
+                            icon: 'el-icon-d-caret',
+                            className: ''
+                        }
+                    ]
+                },
+                searchFlag: true
+            }
+        },
+        computed: {
+            urlParam() {
+                return getUrlParam(window.location.href);
+            }
+        },
+        methods: {
+            /*退出*/
+            logout() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('nickname');
+                localStorage.removeItem('userImg');
+                this.isLogin = false;
+                window.location.href = 'login.html';
+            },
+
+            /*获取某分类下所有的品牌*/
+            async getBrands() {
+                let res;
+                if (this.categoryId) {
+                    const {data} = await axios.get(`product/brands/${this.categoryId}`);
+                    res = data;
+                } else if (this.queryInfo.query) {
+                    const {data} = await axios.get(`product/brands`, {params: {query: this.queryInfo.query}});
+                    res = data;
+                }
+                
+                if (!handleCode(res.code, res.msg)) {
+                    return;
+                }
+
+                this.brands = res.data.brands;
+            },
+
+            /*不带品牌搜索*/
+            searchWithoutBrand() {
+                this.currentBrand = '';
+                this.handleSearch();
+            },
+
+            /*带着品牌搜索*/
+            searchWithBrand(brand) {
+                this.currentBrand = brand;
+                this.handleSearch();
+            },
+
+            /*搜索*/
+            async handleSearch(pagenum = 1) {
+                this.queryInfo.pagenum = pagenum;
+
+                if (this.queryInfo.query) {
+                    this.categoryId = '';
+                }
+
+                await this.getBrands();
+
+                const {data: res} = await axios.get(
+                    `product/search`,
+                    {
+                        params: {
+                            query: this.queryInfo.query,
+                            pagenum: this.queryInfo.pagenum,
+                            pagesize: this.queryInfo.pagesize,
+                            categoryId: this.categoryId,
+                            brand: this.currentBrand,
+                            orderByCol: this.sortType.orderByCol,
+                            seq: this.sortType.seq
+                        }
+                    }
+                );
+
+                if (!handleCode(res.code, res.msg)) {
+                    return;
+                }
+
+                this.products = res.data.pageInfo.list;
+                this.total = res.data.pageInfo.total;
+            },
+
+            /*综合排序*/
+            comprehensiveSort() {
+                /*重置销量排序和价格排序的icon*/
+                this.sortType.flag = [
+                    {
+                        className: 'first'
+                    },
+                    {
+                        sequence: true,
+                        icon: 'el-icon-d-caret',
+                        className: ''
+                    },
+                    {
+                        sequence: true,
+                        icon: 'el-icon-d-caret',
+                        className: ''
+                    }
+                ];
+
+                this.sortType.orderByCol = '';
+                this.sortType.seq = '';
+                this.handleSearch();
+            },
+
+            /*销量排序*/
+            sortBySoldNum() {
+                /*重置价格排序的icon*/
+                this.sortType.flag[2] = {
+                    sequence: true,
+                    icon: 'el-icon-d-caret',
+                    className: ''
+                };
+
+                this.sortType.flag[0].className = '';
+                this.sortType.flag[1].className = 'first';
+                if (this.sortType.flag[1].sequence) {
+                    this.sortType.seq = 'asc';
+                    this.sortType.flag[1].sequence = false;
+                    this.sortType.flag[1].icon = 'el-icon-caret-top';
+                } else {
+                    this.sortType.seq = 'desc';
+                    this.sortType.flag[1].sequence = true;
+                    this.sortType.flag[1].icon = 'el-icon-caret-bottom';
+                }
+                this.sortType.orderByCol = 'p_sold_num';
+                this.handleSearch();
+            },
+
+            /*价格排序*/
+            sortByPrice() {
+                /*重置销量排序的icon*/
+                this.sortType.flag[1] = {
+                    sequence: true,
+                    icon: 'el-icon-d-caret',
+                    className: ''
+                };
+
+                this.sortType.flag[0].className = '';
+                this.sortType.flag[2].className = 'first';
+                if (this.sortType.flag[2].sequence) {
+                    this.sortType.seq = 'asc';
+                    this.sortType.flag[2].sequence = false;
+                    this.sortType.flag[2].icon = 'el-icon-caret-top';
+                } else {
+                    this.sortType.seq = 'desc';
+                    this.sortType.flag[2].sequence = true;
+                    this.sortType.flag[2].icon = 'el-icon-caret-bottom';
+                }
+
+                this.sortType.orderByCol = 'min_sell_price';
+                this.handleSearch();
+            },
+
+            /*监听页码变化*/
+            handlePagenumChange(pagenum) {
+                this.handleSearch(pagenum);
+            },
+
+            /*单击商品到详情页*/
+            toIntroductionPage(productId) {
+                window.location.href = `introduction.html?id=${productId}`;
+            }
+        },
+        mounted() {
+            this.handleSearch();
+
+            this.$nextTick(() => {
+                loadJS('static/js/jquery-1.7.min.js');
+                setTimeout(() => {
+                    loadJS('static/js/script.js');
+                    loadJS('static/js/quick_links.js');
+                }, 200);
+            });
+        }
+    });
+
+</script>
+</body>
+
+</html>

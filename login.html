@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="Cache-Control" content="no-siteapp"/>
+
+    <link rel="stylesheet" href="static/css/amazeui.css"/>
+    <link href="static/css/dlstyle.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="static/css/bootstrap.min.css"/>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./static/elementui/index.css">
+</head>
+
+<body>
+
+<div class="login-boxtitle" style="height: 100px;">
+    <div class="logoBig">
+        <img src="static/images/logo.png" style="margin-left: 0; height: 100px;">
+    </div>
+</div>
+
+<div class="login-banner">
+    <div class="login-main">
+        <div class="login-banner-bg"><span></span><img src="static/images/big.jpg"/></div>
+        <div id="app" class="login-box" style="margin-top: 20px;">
+
+            <h3 class="title">登录商城</h3>
+
+            <div class="clear"></div>
+
+            <div class="login-form" style="background: none; margin-top: 15px;">
+                <form>
+                    <div class="user-name" style="margin-top: 20px;">
+                        <label for="user">
+                            <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                        </label>
+                        <input v-model.trim="loginForm.username"
+                               @blur="checkUsername"
+                               type="text"
+                               name=""
+                               id="user"
+                               placeholder="邮箱/手机/用户名">
+                    </div>
+                    <div class="user-pass" style="margin-top: 20px;">
+                        <label for="password"><span class="glyphicon glyphicon-lock" aria-hidden="true"></span></label>
+                        <input @keyup.enter="login"
+                               @blur="checkPassword"
+                               v-model.trim="loginForm.password"
+                               type="password"
+                               name=""
+                               id="password"
+                               placeholder="请输入密码">
+                    </div>
+                </form>
+            </div>
+
+            <div class="login-links">
+                <label for="remember-me">
+                    <input id="remember-me" type="checkbox">记住密码
+                </label>
+                <a  href="#" class="am-fr">忘记密码</a>
+                <br/>
+            </div>
+            <div class="am-cf">
+                <input @click="login" type="submit" value="登 录" class="am-btn am-btn-primary am-btn-sm">
+            </div>
+            <div class="am-cf">
+                <input type="button" onclick="javascript:window.location.href='register.html'" value="注 册"
+                       class="am-btn am-btn-default am-btn-sm">
+            </div>
+            <div class="partner">
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <div class="footer-hd ">
+        <p>
+            <a style="pointer-events: none;" href="#">潘氏商城</a>
+            <b>|</b>
+            <a style="pointer-events: none;" href="#">商城首页</a>
+            <b>|</b>
+            <a style="pointer-events: none;" href="#">个人中心</a>
+            <b>|</b>
+            <a style="pointer-events: none;" href="#">物流</a>
+        </p>
+    </div>
+    <div class="footer-bd ">
+        <p>
+            <a style="pointer-events: none;" href="#">关于商城</a>
+            <a style="pointer-events: none;" href="#">合作伙伴</a>
+            <a style="pointer-events: none;" href="#">联系我们</a>
+            <a style="pointer-events: none;" href="#">网站地图</a>
+            <em>©pandemo.top 版权所有</em>
+        </p>
+    </div>
+</div>
+
+
+<script src="static/js/vue.js"></script>
+<script src="static/js/axios.min.js"></script>
+<!-- 引入组件库 -->
+<script src="./static/elementui/index.js"></script>
+<script src="./static/utils/utils.js"></script>
+<script type="text/javascript" src="./static/utils/base.js"></script>
+
+<script>
+    axios.defaults.baseURL = baseUrl;
+
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                loginForm: {
+                    username: 'admin',
+                    password: 'admin'
+                },
+            }
+        },
+        computed: {
+            urlParam() {
+                return getUrlParam(window.location.href);
+            }
+        },
+        methods: {
+            showMsg() {
+                if (Number(this.urlParam.code) === 401) {
+                    return this.$message.error({message: this.urlParam.msg, center: true});
+                }
+            },
+
+            async login() {
+                if (this.checkUsername() && this.checkPassword()) {
+                    const {data: res} = await axios.post('user/login', this.loginForm);
+
+                    if (res.code !== 200) {
+                        return this.$message.error({message: res.msg, center: true});
+                    }
+                    localStorage.setItem('token', res.data.token);
+                    localStorage.setItem('userId', res.data.user.userId);
+                    localStorage.setItem('nickname', res.data.user.nickname);
+                    localStorage.setItem('userImg', res.data.user.userImg);
+
+                    /*登录成功后, 如果是从另外一个页面跳转过来的就返回*/
+                    if (this.urlParam.returnPageInfo != null
+                        && typeof (this.urlParam.returnPageInfo) != 'undefined') {
+
+                        const pageInfo = JSON.parse(this.urlParam.returnPageInfo);
+
+                        if (pageInfo.productId != null
+                            && typeof (pageInfo.productId) != 'undefined') {
+
+                            window.location.href = pageInfo.url + `?id=${pageInfo.productId}`;
+                        } else {
+                            window.location.href = pageInfo.url;
+                        }
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                }
+            },
+            checkUsername() {
+                if (this.loginForm.username.length >= 5 && this.loginForm.username.length <= 16) {
+                    return true;
+                } else {
+                    this.$message.error({message: '用户名必须为5~16个字符', center: true});
+                    return false;
+                }
+            },
+            checkPassword() {
+                if (this.loginForm.password.length >= 5 && this.loginForm.password.length <= 16) {
+                    return true;
+                } else {
+                    this.$message.error({message: '密码必须为5~16个字符', center: true});
+                    return false;
+                }
+            }
+        },
+        mounted() {
+            this.showMsg();
+        }
+    });
+</script>
+
+
+</body>
+</html>

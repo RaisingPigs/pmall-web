@@ -1,0 +1,723 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>首页</title>
+
+    <link href="static/css/amazeui.css" rel="stylesheet" type="text/css"/>
+    <link href="static/css/admin.css" rel="stylesheet" type="text/css"/>
+    <link href="static/css/demo.css" rel="stylesheet" type="text/css"/>
+    <link href="static/css/hmstyle.css" rel="stylesheet" type="text/css"/>
+    <link href="static/css/skin.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="static/js/amazeui.min.js"></script>
+
+    <link rel="stylesheet" href="./static/elementui/index.css">
+</head>
+
+<body>
+<div id="app">
+    <!--顶部导航条和悬浮搜索框-->
+    <div class="hmtop">
+        <!--顶部导航条 -->
+        <div class="am-container header">
+            <ul class="message-l">
+                <div class="topMessage">
+                    <div v-if="isLogin" class="menu-hd">
+                        <span class="h">欢迎, {{userInfo.nickname}}</span>
+                        &nbsp;&nbsp;
+                        <a @click.prevent="logout" href="#" target="_top">退出登录</a>
+                    </div>
+                    <div v-else class="menu-hd">
+                        <a href="login.html" target="_top" class="h">亲，请登录</a>
+                        &nbsp;&nbsp;
+                        <a href="register.html" target="_top">免费注册</a>
+                    </div>
+                </div>
+            </ul>
+            <ul class="message-r">
+                <div class="topMessage home">
+                    <div class="menu-hd"><a href="index.html" target="_top" class="h">商城首页</a></div>
+                </div>
+                <div class="topMessage my-shangcheng">
+                    <div class="menu-hd MyShangcheng">
+                        <a href="user-center.html" target="_top">
+                            <i class="am-icon-user am-icon-fw"></i>个人中心
+                        </a>
+                    </div>
+                </div>
+                <div class="topMessage mini-cart">
+                    <div class="menu-hd">
+                        <a @click.prevent="toShopCart"
+                           style="cursor: pointer;"
+                           id="mc-menu-hd"
+                           target="_top">
+                            <i class="am-icon-shopping-cart  am-icon-fw"></i>
+                            <span>购物车</span>
+                            <!--<strong id="J_MiniCartNum" class="h">0</strong>-->
+                        </a>
+                    </div>
+                </div>
+                <div class="topMessage favorite">
+                    <div class="menu-hd">
+                        <a href="#" target="_top">
+                            <!--<i class="am-icon-heart am-icon-fw"></i>
+                            <span>收藏夹</span>-->
+                        </a>
+                    </div>
+                </div>
+            </ul>
+        </div>
+
+        <!--悬浮搜索框-->
+        <div class="nav white">
+
+            <div class="logoBig">
+                <img src="static/images/logo.png" style="margin-left: 0px">
+            </div>
+
+            <div class="search-bar pr">
+                <a name="index_none_header_sysc" href="#"></a>
+                <form action="search.html">
+                    <input @keyup.prevent.enter="toSearchPage"
+                            v-model="searchKeyWord"
+                            id="searchInput"
+                            name="index_none_header_sysc"
+                            type="text"
+                            placeholder="搜索"
+                            autocomplete="off">
+                    <input @click.prevent="toSearchPage"
+                            id="ai-topsearch" 
+                            class="submit am-btn" 
+                            value="搜索" 
+                            index="1" 
+                            type="submit">
+                </form>
+            </div>
+        </div>
+
+        <div class="clear"></div>
+    </div>
+
+    <!--轮播图-->
+    <div class="banner">
+        <!--轮播 -->
+        <div class="am-slider am-slider-default scoll" data-am-flexslider id="demo-slider-0">
+            <ul class="am-slides">
+                <li v-for="(img, index) in indexImgs" :key="img.imgId" :class="'banner'+(index+1)">
+                    <a :href="img.toPage">
+                        <img :src="'./static/images/'+img.imgUrl" alt=""/>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <!--侧边分类菜单-->
+    <div class="shopNav">
+        <div class="slideall">
+            <div class="long-title"><span class="all-goods">全部分类</span></div>
+            <div class="nav-cont">
+                <ul>
+                    <li class="index"><a href="index.html">首页</a></li>
+                    <li class="qc"><a href="#" style="pointer-events: none;">闪购</a></li>
+                    <li class="qc"><a href="#" style="pointer-events: none;">限时抢</a></li>
+                    <li class="qc"><a href="#" style="pointer-events: none;">团购</a></li>
+                    <li class="qc last"><a href="#" style="pointer-events: none;">大包装</a></li>
+                </ul>
+                <!--<div class="nav-extra">
+                    &lt;!&ndash;<i class="am-icon-user-secret am-icon-md nav-user"></i><b></b>我的福利
+                    <i class="am-icon-angle-right" style="padding-left: 10px;"></i>&ndash;&gt;
+                </div>-->
+            </div>
+
+            <!--侧边导航 -->
+            <div id="nav" class="navfull">
+                <div class="area clearfix">
+                    <div class="category-content" id="guide_2">
+
+                        <div class="category">
+                            <ul class="category-list" id="js_climit_li">
+                                <li v-for="category1 in categories"
+                                    :key="category1.categoryId"
+                                    @mouseover.once="getSubCategories(category1)"
+                                    class="appliance js_toggle relative">
+                                    <div class="category-info">
+                                        <h3 class="category-name b-category-name">
+                                            <i><img :src="'static/images/'+category1.categoryIcon" alt=""></i>
+                                            <a class="ml-22"
+                                               :title="category1.categoryName">
+                                                {{category1.categoryName}}
+                                            </a>
+                                        </h3>
+                                        <em>&gt;</em>
+                                    </div>
+                                    <div class="menu-item menu-in top">
+                                        <div class="area-in">
+                                            <div class="area-bg">
+                                                <div class="menu-srot">
+                                                    <div class="sort-side">
+                                                        <dl v-for="category2 in category1.categories"
+                                                            :key="category2.categoryId"
+                                                            class="dl-sort">
+                                                            <dt>
+                                                                <span :title="category2.categoryName">
+                                                                    {{category2.categoryName}}
+                                                                </span>
+                                                            </dt>
+
+                                                            <dd v-for="category3 in category2.categories">
+                                                                <a :title="category3.categoryName"
+                                                                   :href="`search.html?categoryId=${category3.categoryId}`">
+                                                                    <span>{{category3.categoryName}}</span>
+                                                                </a>
+                                                            </dd>
+                                                        </dl>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <b class="arrow"></b>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!--小导航 -->
+            <div class="am-g am-g-fixed smallnav">
+                <div class="am-u-sm-3">
+                    <a href="sort.html"><img src="static/images/navsmall.jpg"/>
+                        <div class="title">商品分类</div>
+                    </a>
+                </div>
+                <div class="am-u-sm-3">
+                    <a href="#"><img src="static/images/huismall.jpg"/>
+                        <div class="title">大聚惠</div>
+                    </a>
+                </div>
+                <div class="am-u-sm-3">
+                    <a href="user-center.html">
+                        <img src="static/images/mansmall.jpg"/>
+                        <div class="title">个人中心</div>
+                    </a>
+                </div>
+                <div class="am-u-sm-3">
+                    <a href="#"><img src="static/images/moneysmall.jpg"/>
+                        <div class="title">投资理财</div>
+                    </a>
+                </div>
+            </div>
+
+            <!--走马灯 -->
+            <div class="marqueen">
+                <span class="marqueen-title">商城头条</span>
+                <div class="demo">
+                    <ul>
+                        <li class="title-first"><a style="pointer-events: none;" target="_blank" href="#">
+                            <img src="static/images/TJ2.jpg"></img>
+                            <span>[特惠]</span>商城爆品1分秒
+                        </a></li>
+                        <li class="title-first"><a style="pointer-events: none;" target="_blank" href="#">
+                            <span>[公告]</span>商城与广州市签署战略合作协议
+                            <img src="static/images/TJ.jpg"></img>
+                            <p>XXXXXXXXXXXXXXXXXX</p>
+                        </a></li>
+
+                        <div class="mod-vip">
+                            <div v-if="isLogin" class="m-baseinfo">
+                                <a href="person/index.html">
+                                    <img :src="`./static/images/${userInfo.userImg}`" alt="">
+                                </a>
+                                <em>
+                                    Hi,<span class="s-name">{{userInfo.nickname}}</span>
+                                    <a style="pointer-events: none;" href="#"><p>点击更多优惠活动</p></a>
+                                </em>
+                            </div>
+                            <div v-else class="member-logout">
+                                <a class="am-btn-warning btn" href="login.html">登录</a>
+                                <a class="am-btn-warning btn" href="register.html">注册</a>
+                            </div>
+                            <div class="member-login">
+                                <a href="#"><strong>0</strong>待收货</a>
+                                <a href="#"><strong>0</strong>待发货</a>
+                                <a href="#"><strong>0</strong>待付款</a>
+                                <a href="#"><strong>0</strong>待评价</a>
+                            </div>
+                            <div class="clear"></div>
+                        </div>
+
+                        <li><a style="pointer-events: none;" target="_blank" href="search.html"><span>[特惠]</span>洋河年末大促，低至两件五折</a></li>
+                        <li><a style="pointer-events: none;" target="_blank" href="search.html"><span>[公告]</span>华北、华中部分地区配送延迟</a></li>
+                        <li><a style="pointer-events: none;" target="_blank" href="search.html"><span>[特惠]</span>家电狂欢千亿礼券 买1送1！</a></li>
+
+                    </ul>
+                    <div class="advTip"><img src="static/images/advTip.jpg"/></div>
+                </div>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+
+    <!--新品推荐 -->
+    <div class="shopMainbg">
+        <div class="shopMain" id="shopmain">
+            <!--新品推荐 -->
+            <div class="am-g am-g-fixed recommendation">
+                <div class="clock am-u-sm-3">
+                    <img src="static/images/2021.png" alt="">
+                    <p>新品<br>推荐</p>
+                </div>
+                <a v-for="product in recommendProducts"
+                   :key="product.productId"
+                   :href="`introduction.html?id=${product.productId}`">
+                    <div class="am-u-sm-4 am-u-lg-3">
+                        <div class="info" style="width: 130px;">
+                            <h3>{{product.productName}}</h3>
+                            <h4>已售: {{product.soldNum}}</h4>
+                        </div>
+                        <div class="recommendationMain one">
+                            <img :src="'static/images/'+product.productImgs[0].url" alt="">
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="clear "></div>
+
+            <!--热门活动 -->
+            <div class="am-container activity ">
+                <div class="shopTitle ">
+                    <h4>活动</h4>
+                    <h3>每期活动 优惠享不停 </h3>
+                    <span class="more ">
+                              <a style="pointer-events: none;" href="#">全部活动<i class="am-icon-angle-right" style="padding-left:10px ;"></i></a>
+                        </span>
+                </div>
+                <div class="am-g am-g-fixed ">
+                    <div class="am-u-sm-3 ">
+                        <div class="icon-sale one "></div>
+                        <h4>秒杀</h4>
+                        <div class="activityMain ">
+                            <img src="static/images/activity1.jpg" alt="">
+                        </div>
+                        <div class="info ">
+                            <h3>春节送礼优选</h3>
+                        </div>
+                    </div>
+
+                    <div class="am-u-sm-3 ">
+                        <div class="icon-sale two "></div>
+                        <h4>特惠</h4>
+                        <div class="activityMain ">
+                            <img src="static/images/activity2.jpg " alt="">
+                        </div>
+                        <div class="info ">
+                            <h3>春节送礼优选</h3>
+                        </div>
+                    </div>
+
+                    <div class="am-u-sm-3 ">
+                        <div class="icon-sale three "></div>
+                        <h4>团购</h4>
+                        <div class="activityMain ">
+                            <img src="static/images/activity3.jpg" alt="">
+                        </div>
+                        <div class="info ">
+                            <h3>春节送礼优选</h3>
+                        </div>
+                    </div>
+
+                    <div class="am-u-sm-3 last ">
+                        <div class="icon-sale "></div>
+                        <h4>超值</h4>
+                        <div class="activityMain ">
+                            <img src="static/images/activity.jpg "></img>
+                        </div>
+                        <div class="info ">
+                            <h3>春节送礼优选</h3>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="clear "></div>
+
+
+            <!--甜品-->
+            <div v-for="category in categoriesWithProductsTop6"
+                 :key="category.categoryId"
+                 id="f1">
+                <div class="am-container">
+                    <div class="shopTitle">
+                        <h4>{{category.categoryName}}</h4>
+                        <h3>{{category.categorySlogan}}</h3>
+                        <div class="today-brands ">
+                            <a v-for="category3 in category.categories"
+                               :key="category3.categoryId"
+                               :href="`search.html?categoryId=${category3.categoryId}`">
+                                {{category3.categoryName}}
+                            </a>
+                        </div>
+                        <span class="more ">
+                    <a href="#">更多美味<i class="am-icon-angle-right" style="padding-left:10px ;"></i></a>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="am-g am-g-fixed floodFour">
+                    <div class="am-u-sm-5 am-u-md-4 text-one list"
+                         :style="`background-color: ${category.categoryBgColor}`">
+                        <div class="word">
+                            <a v-for="category3 in category.categories"
+                               :key="category3.categoryId"
+                               class="outer"
+                               :href="`search.html?categoryId=${category3.categoryId}`">
+                                <span class="inner">
+                                    <b class="text">{{category3.categoryName}}</b>
+                                </span>
+                            </a>
+                        </div>
+                        <a style="pointer-events: none;" href="#">
+                            <div class="outer-con ">
+                                <div class="title ">
+                                    开抢啦！
+                                </div>
+                                <div class="sub-title ">
+                                    零食大礼包
+                                </div>
+                            </div>
+                            <img :src="`static/images/${category.categoryPic}`" alt=""/>
+                        </a>
+                        <div class="triangle-topright"></div>
+                    </div>
+
+                    <div v-for="(product,index) in category.products"
+                         :key="product.productId"
+                         :class="productsTop6Class[index]">
+                        <div class="outer-con">
+                            <div class="title ">
+                                {{product.productName}}
+                            </div>
+                            <div class="sub-title ">
+                                已售: {{product.soldNum}}
+                            </div>
+                            <i class="am-icon-shopping-basket am-icon-md  seprate"></i>
+                        </div>
+                        <a :href="`introduction.html?id=${product.productId}`"><img
+                                :src="`static/images/${product.productImgs[0].url}`"/></a>
+                    </div>
+                </div>
+                <div class="clear "></div>
+            </div>
+
+            <!--加载-->
+            <div class="loading" style="display: flex; align-items: center; justify-content: center; margin: 10px 0">
+                <i v-if="loading" class="el-icon-loading"></i>&nbsp;
+                <span>{{loading ? '正在加载中' : '已经到底啦~'}}</span>
+            </div>
+
+            <!--底部导航-->
+            <div class="footer">
+                <div class="footer-hd ">
+                    <p>
+                        <a style="pointer-events: none;" href="#">潘氏商城</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">商城首页</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">个人中心</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">物流</a>
+                    </p>
+                </div>
+                <div class="footer-bd ">
+                    <p>
+                        <a style="pointer-events: none;" href="#">关于商城</a>
+                        <a style="pointer-events: none;" href="#">合作伙伴</a>
+                        <a style="pointer-events: none;" href="#">联系我们</a>
+                        <a style="pointer-events: none;" href="#">网站地图</a>
+                        <em>©pandemo.top 版权所有</em>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--手机屏幕下方导航条-->
+    <div class="navCir">
+        <li class="active"><a href="home.html"><i class="am-icon-home"></i>首页</a></li>
+        <li><a href="sort.html"><i class="am-icon-list"></i>分类</a></li>
+        <li><a href="shopcart.html"><i class="am-icon-shopping-basket"></i>购物车</a></li>
+        <li><a href="person/index.html"><i class="am-icon-user"></i>我的</a></li>
+    </div>
+
+    <!--右侧菜单 -->
+</div>
+
+<!--<script>
+    window.jQuery || document.write('<script src="static/js/jquery.min.js "></script>');
+</script>-->
+<script type="text/javascript " src="static/js/quick_links.js "></script>
+<script type="text/javascript" src="static/js/vue.js"></script>
+<script type="text/javascript" src="static/js/axios.min.js"></script>
+<!-- 引入组件库 -->
+<script type="text/javascript" src="./static/elementui/index.js"></script>
+<script type="text/javascript" src="./static/utils/base.js"></script>
+
+
+<script type="text/javascript">
+    axios.defaults.baseURL = baseUrl;
+    axios.interceptors.request.use(
+        config => {
+            config.headers.Authorization = localStorage.getItem('token');
+
+            return config;
+        }
+    );
+
+
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                userInfo: {
+                    nickname: localStorage.getItem('nickname'),
+                    userImg: localStorage.getItem('userImg')
+                },
+                isLogin: localStorage.getItem('token') !== null,
+                indexImgs: [],
+                categories: [],
+                recommendProducts: [],
+                categoriesWithProductsTop6: [],
+                getProductsTop6Flag: true,
+                productsTop6Class: {
+                    0: 'am-u-sm-7 am-u-md-4 text-two sug',
+                    1: 'am-u-sm-7 am-u-md-4 text-two',
+                    2: 'am-u-sm-3 am-u-md-2 text-three big',
+                    3: 'am-u-sm-3 am-u-md-2 text-three sug',
+                    4: 'am-u-sm-3 am-u-md-2 text-three',
+                    5: 'am-u-sm-3 am-u-md-2 text-three last big',
+                },
+                searchKeyWord:''
+            }
+        },
+        computed: {
+            loading() {
+                for (const category of this.categories) {
+                    if (!category.showTop6) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        },
+        methods: {
+            /*项目原始的某些组件正常工作*/
+            sthWork() {
+                if ($(window).width() < 640) {
+                    function autoScroll(obj) {
+                        $(obj).find("ul").animate({
+                            marginTop: "-39px"
+                        }, 500, function () {
+                            $(this).css({
+                                marginTop: "0px"
+                            }).find("li:first").appendTo(this);
+                        })
+                    }
+
+                    setInterval(autoScroll(".demo"), 3000);
+                }
+            },
+            /*项目的原始轮播图正常工作*/
+            swiperWork() {
+                $('.am-slider').flexslider();  //让轮播图“动起来”
+            },
+
+            logout() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('nickname');
+                localStorage.removeItem('userImg');
+                this.isLogin = false;
+                window.location.href = 'login.html';
+            },
+
+            categoryWork() {
+                //让分类列表“动起来”
+                $("li").hover(function () {
+                    $(".category-content .category-list li.first .menu-in").css("display", "none");
+                    $(".category-content .category-list li.first").removeClass("hover");
+                    $(this).addClass("hover");
+                    $(this).children("div.menu-in").css("display", "block")
+                }, function () {
+                    $(this).removeClass("hover")
+                    $(this).children("div.menu-in").css("display", "none")
+                });
+            },
+
+            /*获取轮播图*/
+            async getIndexImgs() {
+                const {data: res} = await axios.get('index/indexImgs');
+
+                if (res.code !== 200) {
+                    return this.$message.error({message: res.msg, center: true});
+                }
+
+                this.indexImgs = res.data.indexImgs;
+                for (const indexImg of this.indexImgs) {
+                    let url;
+                    if (indexImg.prodId) {
+                        url = `introduction.html?id=${indexImg.prodId}`;
+                    }
+                    if (indexImg.categoryId) {
+                        url = `search.html?categoryId=${indexImg.categoryId}`;
+                    }
+                    this.$set(indexImg, 'toPage', url);
+                }
+
+                /*获取轮播图后再使轮播图工作*/
+                this.$nextTick(() => {
+                    this.swiperWork();
+                });
+            },
+
+            /*获取一级分类*/
+            async getPrimaryCategories() {
+                const {data: res} = await axios.get(
+                    'index/categories',
+                    {
+                        params: {level: 1}
+                    }
+                );
+
+                if (res.code !== 200) {
+                    return this.$message.error({message: res.msg, center: true});
+                }
+
+                this.categories = res.data.categories;
+
+                /*遍历一级分类设置一个是否显示各分类下商品top6的变量*/
+                this.categories.forEach((category) => {
+                    this.$set(category, 'showTop6', false);
+                });
+
+                this.$nextTick(() => {
+                    this.categoryWork();
+                });
+            },
+
+            /*获取2,3级分类*/
+            async getSubCategories(category1) {
+                const {data: res} = await axios.get(
+                    'index/categories',
+                    {
+                        params: {level: '2,3', id: category1.categoryId}
+                    }
+                );
+
+                if (res.code !== 200) {
+                    return this.$message.error({message: res.msg, center: true});
+                }
+
+                this.$set(category1, 'categories', res.data.categories);
+            },
+
+            /*获取新品推荐*/
+            async getRecommendProducts() {
+                const {data: res} = await axios.get('index/recommend');
+
+                if (res.code !== 200) {
+                    return this.$message.error({message: res.msg, center: true})
+                }
+
+                this.recommendProducts = res.data.products;
+            },
+
+            /*滚动事件*/
+            scrollFn() {
+                /*获取窗口高度winHeight, 已滚动长度st, 整个网页长度docHeight*/
+                let winHeight = window.innerHeight;
+                let st = document.documentElement.scrollTop;
+                let docHeight = document.documentElement.scrollHeight;
+
+                /*当winHeight + st >= docHeight时, 说明滚动条到底了
+                * docHeight - 100, 是因为页面底部的导航和版权信息占了100px*/
+                if (winHeight + st >= (docHeight - 200)) {
+                    /*触底之后就可以发送请求渲染数据*/
+                    if (this.getProductsTop6Flag) {
+                        this.getProductsTop6();
+                    }
+                }
+
+            },
+
+            /*发送请求获取各分类销量top6*/
+            async getProductsTop6() {
+                for (const category of this.categories) {
+                    if (!category.showTop6) {
+                        const {data: res} = await axios.get(`index/top6/${category.categoryId}`);
+
+                        this.getProductsTop6Flag = false;
+
+                        if (res.code !== 200) {
+                            return this.$message.error({message: res.msg, center: true});
+                        }
+
+                        this.categoriesWithProductsTop6.push(res.data.category);
+
+                        category.showTop6 = true;
+                        this.getProductsTop6Flag = true;
+                        return;
+                    }
+                }
+            },
+
+            /*去购物车页面*/
+            toShopCart() {
+                if (this.isLogin) {
+                    window.location.href = 'shopcart.html';
+                } else {
+                    window.location.href = 'login.html?code=401&msg=请先登录';
+                }
+            },
+
+            /*单击搜索进入搜索页*/
+            toSearchPage() {
+                if (this.searchKeyWord != null && this.searchKeyWord !== '') {
+                    window.location.href = `search.html?query=${this.searchKeyWord}`;
+                } else {
+                    this.$message.error({message: '请输入关键字再搜索', center: true});
+                }
+            }
+        },
+        mounted() {
+            this.getIndexImgs();
+            this.getPrimaryCategories();
+            this.getRecommendProducts();
+
+            /*监听页面滚动*/
+            window.addEventListener('scroll', this.scrollFn);
+
+            /*让项目的原始js代码工作*/
+            this.$nextTick(() => {
+                this.sthWork();
+            });
+        },
+        beforeDestroy() {
+            /*移除滚动监听*/
+            window.removeEventListener('scroll', this.scrollFn);
+        }
+    });
+</script>
+</body>
+
+</html>

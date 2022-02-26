@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=0">
+
+    <title>订单管理</title>
+
+    <link href="./static/css/admin.css" rel="stylesheet" type="text/css">
+    <link href="./static/css/amazeui.css" rel="stylesheet" type="text/css">
+
+    <link href="./static/css/personal.css" rel="stylesheet" type="text/css">
+    <link href="./static/css/orstyle.css" rel="stylesheet" type="text/css">
+
+    <!--    <script src="./static/js/jquery.min.js"></script>-->
+    <!--    <script src="./static/js/amazeui.js"></script>-->
+    <link rel="stylesheet" href="./static/elementui/index.css">
+
+    <style type="text/css">
+        .orderHandle > p {
+            cursor: pointer;
+            color: #000;
+        }
+
+        .orderHandle > p:hover {
+            color: #404040;
+        }
+
+        .orderHandle > .el-button {
+            margin-bottom: 10px;
+        }
+
+        .orderHandle > .el-button > span {
+            font-size: 12px;
+        }
+    </style>
+
+</head>
+
+<body>
+<div id="app">
+    <!--头 -->
+    <header>
+        <article>
+            <div class="mt-logo">
+                <!--顶部导航条 -->
+                <div class="am-container header">
+                    <ul class="message-l">
+                        <div class="topMessage">
+                            <div v-if="isLogin" class="menu-hd">
+                                <span class="h">欢迎, {{userInfo.nickname}}</span>
+                                &nbsp;&nbsp;
+                                <a @click.prevent="logout" href="#" target="_top">退出登录</a>
+                            </div>
+                            <div v-else class="menu-hd">
+                                <a href="login.html" target="_top" class="h">亲，请登录</a>
+                                &nbsp;&nbsp;
+                                <a href="register.html" target="_top">免费注册</a>
+                            </div>
+                        </div>
+                    </ul>
+                    <ul class="message-r">
+                        <div class="topMessage home">
+                            <div class="menu-hd"><a href="index.html" target="_top" class="h">商城首页</a></div>
+                        </div>
+                        <div class="topMessage my-shangcheng">
+                            <div class="menu-hd MyShangcheng"><a href="user-center.html" target="_top"><i
+                                    class="am-icon-user am-icon-fw"></i>个人中心</a></div>
+                        </div>
+                        <div class="topMessage mini-cart">
+                            <div class="menu-hd">
+                                <a id="mc-menu-hd" href="shopcart.html" target="_top">
+                                    <i class="am-icon-shopping-cart  am-icon-fw"></i>
+                                    <span>购物车</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="topMessage favorite">
+                            <div class="menu-hd">
+                                <!--<a href="#" target="_top"><i
+                                        class="am-icon-heart am-icon-fw"></i><span>收藏夹</span>
+                                </a>-->
+                            </div>
+                        </div>
+                    </ul>
+                </div>
+
+                <!--悬浮搜索框-->
+
+                <div class="nav white">
+                    <div class="logoBig">
+                        <li><img src="./static/images/logobig.png"/></li>
+                    </div>
+
+                    <div class="search-bar pr">
+                        <a name="index_none_header_sysc" href="#"></a>
+                        <form>
+                            <input id="searchInput" name="index_none_header_sysc" type="text" placeholder="搜索"
+                                   autocomplete="off">
+                            <input id="ai-topsearch" class="submit am-btn" value="搜索" index="1" type="submit">
+                        </form>
+                    </div>
+                </div>
+
+                <div class="clear"></div>
+            </div>
+        </article>
+    </header>
+
+    <div class="nav-table">
+        <div class="long-title"><span class="all-goods">全部分类</span></div>
+        <div class="nav-cont">
+            <ul>
+                <li class="index"><a href="index.html">首页</a></li>
+                <li class="qc"><a style="pointer-events: none;" href="#">闪购</a></li>
+                <li class="qc"><a style="pointer-events: none;" href="#">限时抢</a></li>
+                <li class="qc"><a style="pointer-events: none;" href="#">团购</a></li>
+                <li class="qc last"><a style="pointer-events: none;" href="#">大包装</a></li>
+            </ul>
+        </div>
+    </div>
+    <b class="line"></b>
+
+    <div class="center">
+        <div class="col-main">
+            <div class="main-wrap">
+
+                <div class="user-order">
+
+                    <!--标题 -->
+                    <div class="am-cf am-padding">
+                        <div class="am-fl am-cf"><strong class="am-text-danger am-text-lg">订单管理</strong> /
+                            <small>Order</small></div>
+                    </div>
+                    <hr/>
+
+                    <el-row>
+                        <el-col align="center">
+                            <!--新订单页面-->
+                            <el-tabs v-model="orderStatus"
+                                     type="border-card"
+                                     @tab-click="tabChange"
+                                     stretch>
+                                <el-tab-pane label="全部订单" name="0">
+                                    <el-table :data="orders"
+                                              style="width: 100%">
+                                        <el-table-column
+                                                label="商品"
+                                                width="300px"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="display: flex; margin-bottom: 10px">
+                                                    <el-image style="width: 100px;
+                                                                height: 100px"
+                                                              :src="`./static/images/${orderItem.skuImg}`"
+                                                              fit="contain">
+                                                    </el-image>
+                                                    <div style="margin-left: 10px; cursor: pointer">
+                                                        <a style=" color: #000">{{orderItem.productName}}</a>
+                                                        <br>
+                                                        <a style=" color: silver">规格: {{orderItem.skuName}}</a>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="单价"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.productPrice}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="数量"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.buyCounts}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="合计"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <span>总价: {{scope.row.actualAmount}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="商品操作"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-if="scope.row.status === 4"
+                                                     v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px; ">
+                                                    <span @click="handleOrderComment(orderItem.itemId)"
+                                                          v-if="!orderItem.isComment"
+                                                          style="cursor: pointer;">评价商品</span>
+                                                    <span v-else>评价完成</span>
+                                                </div>
+                                                <div v-else
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>无</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="交易状态"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <el-tag :type="orderStatusArr[scope.row.status].tagType">
+                                                        {{orderStatusArr[scope.row.status].tagValue}}
+                                                    </el-tag>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="交易操作"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div v-if="scope.row.status === 1"
+                                                     class="orderHandle">
+                                                    <el-button @click="handleOrderPay(scope.row.orderId)"
+                                                               size="mini" type="success">支付订单
+                                                    </el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+
+                                                    <el-button @click="updateOrderStatus(scope.row.orderId, 6)"
+                                                               size="mini" type="danger">取消订单
+                                                    </el-button>
+                                                </div>
+                                                <div v-else-if="scope.row.status === 2"
+                                                     class="orderHandle">
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="warning">退换/售后</el-button>
+                                                </div>
+                                                <div v-else-if="scope.row.status === 3"
+                                                     class="orderHandle">
+                                                    <el-button @click="updateOrderStatus(scope.row.orderId, 4)"
+                                                               size="mini" type="success">确认收货
+                                                    </el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="info">物流信息</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="warning">退换/售后</el-button>
+                                                </div>
+                                                <div v-else-if="scope.row.status === 4"
+                                                     class="orderHandle">
+                                                    <el-button size="mini" type="info">物流信息</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="warning">退换/售后</el-button>
+                                                </div>
+                                                <div v-else-if="scope.row.status === 5"
+                                                     class="orderHandle">
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="info">物流信息</el-button>
+                                                    <br>
+                                                    <el-button @click="updateOrderStatus(scope.row.orderId, -1)"
+                                                               size="mini" type="danger">删除订单
+                                                    </el-button>
+                                                </div>
+                                                <div v-else-if="scope.row.status === 6"
+                                                     class="orderHandle">
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="danger">删除订单</el-button>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+
+                                    <el-pagination
+                                            style="margin-top: 20px;"
+                                            @current-change="handlePagenumChange"
+                                            :current-page="queryInfo.pagenum"
+                                            :page-size="queryInfo.pagesize"
+                                            layout="prev, pager, next"
+                                            :total="total"
+                                            background>
+                                    </el-pagination>
+                                </el-tab-pane>
+
+                                <el-tab-pane label="待付款" name="1">
+                                    <el-table :data="orders"
+                                              style="width: 100%">
+                                        <el-table-column
+                                                label="商品"
+                                                width="300px"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="display: flex; margin-bottom: 10px">
+                                                    <el-image style="width: 100px;
+                                                                height: 100px"
+                                                              :src="`./static/images/${orderItem.skuImg}`"
+                                                              fit="contain">
+                                                    </el-image>
+                                                    <div style="margin-left: 10px; cursor: pointer">
+                                                        <a style=" color: #000">{{orderItem.productName}}</a>
+                                                        <br>
+                                                        <a style=" color: silver">规格: {{orderItem.skuName}}</a>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="单价"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.productPrice}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="数量"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.buyCounts}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="合计"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <span>¥ {{scope.row.actualAmount}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="交易状态"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <el-tag :type="orderStatusArr[scope.row.status].tagType">
+                                                        {{orderStatusArr[scope.row.status].tagValue}}
+                                                    </el-tag>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="交易操作"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div class="orderHandle">
+                                                    <el-button @click="handleOrderPay(scope.row.orderId)" size="mini"
+                                                               type="success">支付订单
+                                                    </el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button @click="updateOrderStatus(scope.row.orderId, 6)"
+                                                               size="mini" type="danger">取消订单
+                                                    </el-button>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+
+                                    <el-pagination
+                                            style="margin-top: 20px;"
+                                            @current-change="handlePagenumChange"
+                                            :current-page="queryInfo.pagenum"
+                                            :page-size="queryInfo.pagesize"
+                                            layout="prev, pager, next"
+                                            :total="total"
+                                            background>
+                                    </el-pagination>
+                                </el-tab-pane>
+
+                                <el-tab-pane label="待发货" name="2">
+                                    <el-table :data="orders"
+                                              style="width: 100%">
+                                        <el-table-column
+                                                label="商品"
+                                                width="300px"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="display: flex; margin-bottom: 10px">
+                                                    <el-image style="width: 100px;
+                                                                height: 100px"
+                                                              :src="`./static/images/${orderItem.skuImg}`"
+                                                              fit="contain">
+                                                    </el-image>
+                                                    <div style="margin-left: 10px; cursor: pointer">
+                                                        <a style=" color: #000">{{orderItem.productName}}</a>
+                                                        <br>
+                                                        <a style=" color: silver">规格: {{orderItem.skuName}}</a>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="单价"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.productPrice}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="数量"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.buyCounts}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="合计"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <span>总价: {{scope.row.actualAmount}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="交易状态"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <el-tag :type="orderStatusArr[scope.row.status].tagType">
+                                                        {{orderStatusArr[scope.row.status].tagValue}}
+                                                    </el-tag>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="交易操作"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div class="orderHandle">
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="warning">退换/售后</el-button>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+
+                                    <el-pagination
+                                            style="margin-top: 20px;"
+                                            @current-change="handlePagenumChange"
+                                            :current-page="queryInfo.pagenum"
+                                            :page-size="queryInfo.pagesize"
+                                            layout="prev, pager, next"
+                                            :total="total"
+                                            background>
+                                    </el-pagination>
+                                </el-tab-pane>
+
+                                <el-tab-pane label="待收货" name="3">
+                                    <el-table :data="orders"
+                                              style="width: 100%">
+                                        <el-table-column
+                                                label="商品"
+                                                width="300px"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="display: flex; margin-bottom: 10px">
+                                                    <el-image style="width: 100px;
+                                                                height: 100px"
+                                                              :src="`./static/images/${orderItem.skuImg}`"
+                                                              fit="contain">
+                                                    </el-image>
+                                                    <div style="margin-left: 10px; cursor: pointer">
+                                                        <a style=" color: #000">{{orderItem.productName}}</a>
+                                                        <br>
+                                                        <a style=" color: silver">规格: {{orderItem.skuName}}</a>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="单价"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.productPrice}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="数量"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.buyCounts}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="合计"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <span>总价: {{scope.row.actualAmount}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="交易状态"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <el-tag :type="orderStatusArr[scope.row.status].tagType">
+                                                        {{orderStatusArr[scope.row.status].tagValue}}
+                                                    </el-tag>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="交易操作"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div v-if="scope.row.status === 3"
+                                                     class="orderHandle">
+                                                    <el-button @click="updateOrderStatus(scope.row.orderId, 4)"
+                                                               size="mini" type="success">确认收货
+                                                    </el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="info">物流信息</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="warning">退换/售后</el-button>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+
+                                    <el-pagination
+                                            style="margin-top: 20px;"
+                                            @current-change="handlePagenumChange"
+                                            :current-page="queryInfo.pagenum"
+                                            :page-size="queryInfo.pagesize"
+                                            layout="prev, pager, next"
+                                            :total="total"
+                                            background>
+                                    </el-pagination>
+                                </el-tab-pane>
+
+                                <el-tab-pane label="待评价" name="4">
+                                    <el-table :data="orders"
+                                              style="width: 100%">
+                                        <el-table-column
+                                                label="商品"
+                                                width="300px"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="display: flex; margin-bottom: 10px">
+                                                    <el-image style="width: 100px;
+                                                                height: 100px"
+                                                              :src="`./static/images/${orderItem.skuImg}`"
+                                                              fit="contain">
+                                                    </el-image>
+                                                    <div style="margin-left: 10px; cursor: pointer">
+                                                        <a style=" color: #000">{{orderItem.productName}}</a>
+                                                        <br>
+                                                        <a style=" color: silver">规格: {{orderItem.skuName}}</a>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="单价"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.productPrice}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="数量"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>{{orderItem.buyCounts}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="合计"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <span>总价: {{scope.row.actualAmount}}</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="商品操作"
+                                                align="center">
+                                            <template v-slot='scope'>
+                                                <div v-if="scope.row.status === 4"
+                                                     v-for="orderItem in scope.row.orderItems"
+                                                     :key="orderItem.itemId"
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px; ">
+                                                    <span @click="handleOrderComment(orderItem.itemId)"
+                                                          v-if="!orderItem.isComment"
+                                                          style="cursor: pointer;">评价商品</span>
+                                                    <span v-else>评价完成</span>
+                                                </div>
+                                                <div v-else
+                                                     style="height: 100px;margin-bottom: 10px; line-height: 100px">
+                                                    <span>无</span>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+
+                                        <el-table-column
+                                                label="交易状态"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div>
+                                                    <el-tag :type="orderStatusArr[scope.row.status].tagType">
+                                                        {{orderStatusArr[scope.row.status].tagValue}}
+                                                    </el-tag>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="交易操作"
+                                                align="center">
+                                            <template v-slot="scope">
+                                                <div v-if="scope.row.status === 4"
+                                                     class="orderHandle">
+                                                    <el-button size="mini" type="info">物流信息</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="primary">订单详情</el-button>
+                                                    <br>
+                                                    <el-button size="mini" type="warning">退换/售后</el-button>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+
+                                    <el-pagination
+                                            style="margin-top: 20px;"
+                                            @current-change="handlePagenumChange"
+                                            :current-page="queryInfo.pagenum"
+                                            :page-size="queryInfo.pagesize"
+                                            layout="prev, pager, next"
+                                            :total="total"
+                                            background>
+                                    </el-pagination>
+                                </el-tab-pane>
+                            </el-tabs>
+                        </el-col>
+                    </el-row>
+                </div>
+            </div>
+            <!--底部-->
+            <div class="footer">
+                <div class="footer-hd ">
+                    <p>
+                        <a style="pointer-events: none;" href="#">潘氏商城</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">商城首页</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">个人中心</a>
+                        <b>|</b>
+                        <a style="pointer-events: none;" href="#">物流</a>
+                    </p>
+                </div>
+                <div class="footer-bd ">
+                    <p>
+                        <a style="pointer-events: none;" href="#">关于商城</a>
+                        <a style="pointer-events: none;" href="#">合作伙伴</a>
+                        <a style="pointer-events: none;" href="#">联系我们</a>
+                        <a style="pointer-events: none;" href="#">网站地图</a>
+                        <em>©pandemo.top 版权所有</em>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <aside class="menu">
+            <ul>
+                <li class="person active">
+                    <a href="user-center.html">个人中心</a>
+                </li>
+                <li class="person">
+                    <ul>
+                        <li><a href="#">个人信息</a></li>
+                        <li><a href="#">收货地址</a></li>
+                    </ul>
+                </li>
+                <li class="person">
+                    <ul>
+                        <li><a href="user-orderlist.html?status=0">订单管理</a></li>
+                        <li><a href="#">退款售后</a></li>
+                        <li><a href="#">评价</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+        </aside>
+
+    </div>
+</div>
+
+<script type="text/javascript" src="static/js/vue.js"></script>
+<script type="text/javascript" src="static/js/axios.min.js"></script>
+<!-- 引入组件库 -->
+<script type="text/javascript" src="./static/elementui/index.js"></script>
+<script type="text/javascript" src="./static/utils/utils.js"></script>
+<script type="text/javascript" src="./static/utils/handleError.js"></script>
+<script type="text/javascript" src="./static/utils/base.js"></script>
+
+<script type="text/javascript">
+    axios.defaults.baseURL = baseUrl;
+    axios.interceptors.request.use(
+        config => {
+            config.headers.Authorization = localStorage.getItem('token');
+
+            return config;
+        }
+    );
+
+
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                userInfo: {
+                    nickname: localStorage.getItem('nickname'),
+                    userImg: localStorage.getItem('userImg')
+                },
+                isLogin: localStorage.getItem('token') !== null,
+                orders: [],
+                queryInfo: {
+                    query: '',
+                    pagenum: 1,
+                    pagesize: 3
+                },
+                total: 0,
+                orderStatus: 0,
+                orderStatusArr: [
+                    '',
+                    {
+                        tagValue: '未付款',
+                        tagType: 'danger'
+                    },
+                    {
+                        tagValue: '未发货',
+                        tagType: 'warning'
+                    },
+                    {
+                        tagValue: '已发货',
+                        tagType: 'primary'
+                    },
+                    {
+                        tagValue: '未评论',
+                        tagType: 'warning'
+                    },
+                    {
+                        tagValue: '已完成',
+                        tagType: 'success'
+                    },
+                    {
+                        tagValue: '交易关闭',
+                        tagType: 'info'
+                    }
+                ]
+            }
+        },
+        computed: {
+            urlParam() {
+                return getUrlParam(window.location.href);
+            }
+        },
+        methods: {
+            /*退出*/
+            logout() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('nickname');
+                localStorage.removeItem('userImg');
+                this.isLogin = false;
+                window.location.href = 'login.html';
+            },
+
+            /*
+            * 根据用户id和订单状态查询订单
+            * */
+            async getOrdersWithItem() {
+                const {data: res} = await axios.get(`order/${localStorage.getItem('userId')}/${this.orderStatus}`, {params: this.queryInfo});
+
+                if (!handleCode(res.code, res.msg)) {
+                    return;
+                }
+
+                this.orders = res.data.pageInfo.list;
+                this.total = res.data.pageInfo.total;
+            },
+
+            tabChange() {
+                this.queryInfo.pagenum = 1;
+                this.getOrdersWithItem();
+            },
+
+            handlePagenumChange(newPagenum) {
+                this.queryInfo.pagenum = newPagenum;
+                this.getOrdersWithItem();
+            },
+
+            /*修改订单状态*/
+            async updateOrderStatus(orderId, status) {
+                let res;
+
+                /*6是取消订单, 需要设置关闭类型*/
+                if (status === 6) {
+                    if (confirm("是否要取消订单?")) {
+                        const {data} = await axios.put(`order/${orderId}/${status}`, {params: {closeType: 3}});
+                        res = data;
+                    } else {
+                        return;
+                    }
+                } else {
+                    if (confirm("确定要执行操作吗?")) {
+                        const {data} = await axios.put(`order/${orderId}/${status}`);
+                        res = data;
+                    } else {
+                        return;
+                    }
+                }
+
+                if (!handleCode(res.code, res.msg)) {
+                    return;
+                }
+
+                await this.getOrdersWithItem();
+            },
+
+            /*调转到订单支付页面*/
+            handleOrderPay(orderId) {
+                window.location.href = `order-pay.html?orderId=${orderId}`;
+            },
+
+            /*跳转到商品评价页面*/
+            handleOrderComment(orderItemId) {
+                window.location.href = `user-commentlist.html?orderItemId=${orderItemId}`;
+            }
+        },
+        mounted() {
+            this.orderStatus = this.urlParam.status;
+            this.getOrdersWithItem();
+
+            this.$nextTick(() => {
+                loadJS('./static/js/jquery.min.js');
+
+                setTimeout(() => {
+                    loadJS('./static/js/amazeui.js');
+                }, 200);
+            })
+        }
+    });
+
+</script>
+</body>
+</html>
